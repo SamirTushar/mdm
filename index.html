@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus — Master Data Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --orange-50: #fff7ed; --orange-100: #ffedd5; --orange-200: #fed7aa;
+  --orange-400: #fb923c; --orange-500: #E8734A; --orange-600: #D4623D;
+  --gray-50: #fafafa; --gray-100: #f5f5f5; --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4; --gray-400: #a3a3a3; --gray-500: #737373;
+  --gray-600: #525252; --gray-700: #404040; --gray-800: #262626;
+  --gray-900: #171717; --gray-950: #0a0a0a;
+  --green: #22c55e; --green-bg: #f0fdf4; --green-border: #bbf7d0;
+  --red: #ef4444; --red-bg: #fef2f2; --red-border: #fecaca;
+  --amber: #f59e0b; --amber-bg: #fffbeb; --amber-border: #fde68a;
+  --sap: #2563eb; --oracle: #ea580c; --epicor: #9333ea; --infor: #0891b2;
+}
+[data-theme="light"] {
+  --bg: #fff; --bg-subtle: var(--gray-50); --bg-muted: var(--gray-100);
+  --bg-card: #fff; --border: var(--gray-200); --border-strong: var(--gray-300);
+  --text: var(--gray-900); --text-secondary: var(--gray-600); --text-muted: var(--gray-400);
+  --primary: var(--orange-500); --primary-hover: var(--orange-600);
+  --primary-bg: var(--orange-50); --primary-border: var(--orange-200);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08); --shadow-lg: 0 10px 30px rgba(0,0,0,0.1);
+  --ring: var(--orange-200); --header-bg: #fff; --header-border: var(--gray-200);
+  --toggle-track: var(--gray-200); --tooltip-bg: var(--gray-900); --tooltip-text: #fff;
+}
+[data-theme="dark"] {
+  --bg: var(--gray-950); --bg-subtle: var(--gray-900); --bg-muted: var(--gray-800);
+  --bg-card: var(--gray-900); --border: var(--gray-800); --border-strong: var(--gray-700);
+  --text: var(--gray-50); --text-secondary: var(--gray-400); --text-muted: var(--gray-600);
+  --primary: var(--orange-400); --primary-hover: var(--orange-500);
+  --primary-bg: rgba(232,115,74,0.1); --primary-border: rgba(232,115,74,0.2);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4); --shadow-lg: 0 10px 30px rgba(0,0,0,0.5);
+  --ring: rgba(232,115,74,0.3); --header-bg: var(--gray-950); --header-border: var(--gray-800);
+  --toggle-track: var(--gray-700); --tooltip-bg: var(--gray-100); --tooltip-text: var(--gray-900);
+  --green-bg: rgba(34,197,94,0.1); --green-border: rgba(34,197,94,0.2);
+  --red-bg: rgba(239,68,68,0.1); --red-border: rgba(239,68,68,0.2);
+  --amber-bg: rgba(245,158,11,0.1); --amber-border: rgba(245,158,11,0.2);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: var(--font); background: var(--bg); color: var(--text);
+  line-height: 1.5; min-height: 100vh; -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+.header {
+  background: var(--header-bg); border-bottom: 1px solid var(--header-border);
+  padding: 0 24px; display: flex; align-items: center; height: 52px;
+  position: sticky; top: 0; z-index: 100; transition: background 0.2s;
+}
+.logo {
+  font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px;
+  margin-right: 32px; display: flex; align-items: center; gap: 8px; text-decoration: none;
+}
+.logo-mark {
+  width: 26px; height: 26px; background: var(--primary); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 13px;
+}
+.tabs { display: flex; gap: 0; flex: 1; height: 100%; }
+.tab-btn {
+  background: none; border: none; color: var(--text-muted); font-family: var(--font);
+  font-size: 13px; font-weight: 500; padding: 0 16px; height: 100%; cursor: pointer;
+  position: relative; transition: color 0.15s; white-space: nowrap; display: flex; align-items: center;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text); font-weight: 600; }
+.tab-btn.active::after {
+  content: ''; position: absolute; bottom: -1px; left: 16px; right: 16px;
+  height: 2px; background: var(--primary); border-radius: 2px 2px 0 0;
+}
+.header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.theme-toggle {
+  width: 36px; height: 20px; background: var(--toggle-track); border: 1px solid var(--border);
+  border-radius: 10px; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0;
+}
+.theme-toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  background: white; border-radius: 50%; box-shadow: var(--shadow-sm); transition: transform 0.2s;
+}
+[data-theme="dark"] .theme-toggle { background: var(--primary); }
+[data-theme="dark"] .theme-toggle::after { transform: translateX(16px); }
+.theme-label { font-size: 11px; color: var(--text-muted); }
+
+.main { padding: 24px; max-width: 1280px; margin: 0 auto; }
+.screen { display: none; animation: fadeIn 0.2s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px; box-shadow: var(--shadow-sm); transition: background 0.2s, border 0.2s;
+}
+.card-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.card-desc { font-size: 12px; color: var(--text-secondary); margin-top: -8px; margin-bottom: 12px; }
+.page-header { margin-bottom: 20px; }
+.page-title { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.page-desc { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+.grid { display: grid; gap: 14px; }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-2-1 { grid-template-columns: 2fr 1fr; }
+
+.badge {
+  display: inline-flex; align-items: center; font-size: 11px; font-weight: 600;
+  padding: 2px 7px; border-radius: 5px; letter-spacing: 0.01em; line-height: 1.5;
+}
+.badge-sap    { background: rgba(37,99,235,0.1);  color: var(--sap);    border: 1px solid rgba(37,99,235,0.15); }
+.badge-oracle { background: rgba(234,88,12,0.1);  color: var(--oracle); border: 1px solid rgba(234,88,12,0.15); }
+.badge-epicor { background: rgba(147,51,234,0.1); color: var(--epicor); border: 1px solid rgba(147,51,234,0.15); }
+.badge-infor  { background: rgba(8,145,178,0.1);  color: var(--infor);  border: 1px solid rgba(8,145,178,0.15); }
+.badge-green  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge-red    { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-border); }
+.badge-amber  { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge-primary { background: var(--primary-bg); color: var(--primary); border: 1px solid var(--primary-border); }
+
+.stat-value { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; }
+.stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+.progress-bar { width: 100%; height: 4px; background: var(--bg-muted); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+
+table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.tbl th {
+  text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 500;
+  color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+table.tbl td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.tbl tbody tr:hover { background: var(--bg-subtle); }
+
+.stat-row {
+  display: flex; justify-content: space-between; padding: 7px 0; font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.stat-row:last-child { border-bottom: none; }
+
+/* Info button & tooltip */
+.info-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700;
+  color: var(--text-muted); border: 1px solid var(--border); background: var(--bg-subtle);
+  cursor: help; position: relative; flex-shrink: 0; font-style: italic; font-family: Georgia, serif;
+  transition: all 0.15s; line-height: 1;
+}
+.info-btn:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-bg); }
+.info-btn .tip {
+  display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  background: var(--tooltip-bg); color: var(--tooltip-text); font-family: var(--font);
+  font-size: 12px; font-weight: 400; font-style: normal; line-height: 1.5;
+  padding: 10px 14px; border-radius: 8px; width: 280px; box-shadow: var(--shadow-lg);
+  z-index: 300; pointer-events: none; text-align: left;
+}
+.info-btn .tip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: var(--tooltip-bg);
+}
+.info-btn:hover .tip { display: block; }
+/* Right-aligned tooltips for elements near right edge */
+.info-btn.tip-left .tip { left: auto; right: -8px; transform: none; }
+.info-btn.tip-left .tip::after { left: auto; right: 12px; transform: none; }
+
+/* Clusters */
+.cluster {
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  margin-bottom: 14px; background: var(--bg-card); transition: all 0.2s;
+}
+.cluster-header {
+  padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border); background: var(--bg-subtle);
+}
+.cluster-title { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.cluster-body { padding: 14px 18px; }
+.source-cards { display: grid; gap: 10px; }
+.source-cards-3 { grid-template-columns: repeat(3, 1fr); }
+.source-cards-2 { grid-template-columns: repeat(2, 1fr); }
+.source-card { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.source-card-header { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+.source-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; }
+.source-row .lbl { color: var(--text-muted); font-size: 11px; }
+.source-row .val { font-weight: 500; }
+.source-row .val.mismatch { color: var(--red); font-weight: 600; }
+.cluster-footer {
+  padding: 10px 18px; border-top: 1px solid var(--border); display: flex;
+  gap: 8px; justify-content: flex-end; background: var(--bg-subtle);
+}
+
+.btn {
+  font-family: var(--font); font-size: 12px; font-weight: 500; padding: 7px 14px;
+  border-radius: 7px; border: 1px solid transparent; cursor: pointer;
+  transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-outline { background: var(--bg-card); color: var(--text-secondary); border-color: var(--border); }
+.btn-outline:hover { background: var(--bg-muted); color: var(--text); }
+.btn-success { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-success:hover { background: #16a34a; transform: translateY(-1px); }
+.btn-success:active { transform: scale(0.98); }
+
+.cluster-approved { padding: 28px 18px; text-align: center; animation: pop 0.4s ease; }
+@keyframes pop { 0% { opacity:0; transform:scale(0.95); } 60% { transform:scale(1.01); } 100% { opacity:1; transform:scale(1); } }
+.cluster-approved .icon { font-size: 32px; color: var(--green); margin-bottom: 4px; }
+.cluster-approved .title { font-size: 14px; font-weight: 600; color: var(--green); margin-bottom: 10px; }
+.golden-preview {
+  display: inline-block; text-align: left; background: var(--bg-subtle);
+  border: 1px solid var(--primary-border); border-radius: 8px; padding: 12px 16px; max-width: 340px;
+}
+.golden-preview-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 4px; }
+
+.rules-layout { display: grid; grid-template-columns: 280px 1fr; gap: 14px; }
+.priority-list { list-style: none; }
+.priority-item {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 7px;
+  padding: 9px 12px; margin-bottom: 5px; display: flex; align-items: center;
+  gap: 8px; cursor: grab; transition: all 0.15s; user-select: none; font-size: 13px;
+}
+.priority-item.dragging { opacity: 0.3; }
+.priority-item.drag-over { border-color: var(--primary); background: var(--primary-bg); }
+.priority-rank {
+  width: 22px; height: 22px; border-radius: 5px; background: var(--bg-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--text-secondary); flex-shrink: 0;
+}
+.priority-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.drag-handle { color: var(--text-muted); font-size: 13px; }
+.rule-select {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 5px;
+  color: var(--text); padding: 4px 7px; font-family: var(--font); font-size: 12px; cursor: pointer;
+}
+.rule-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--ring); }
+
+.search-bar {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+.search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px var(--ring); }
+.search-bar input { flex: 1; background: none; border: none; color: var(--text); font-family: var(--font); font-size: 13px; outline: none; }
+.search-bar input::placeholder { color: var(--text-muted); }
+
+.golden-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); }
+.golden-meta strong { color: var(--text); font-weight: 600; }
+.golden-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.golden-field { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 7px; padding: 12px; transition: all 0.3s; }
+.golden-field.highlight { border-color: var(--primary); background: var(--primary-bg); }
+.golden-field-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; }
+.golden-field-value { font-size: 14px; font-weight: 600; }
+
+.audit-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.audit-row:last-child { border-bottom: none; }
+.audit-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); margin-top: 5px; flex-shrink: 0; }
+.audit-time { color: var(--text-muted); font-size: 11px; }
+
+.impact-value { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; }
+.comparison-before { color: var(--text-secondary); }
+.comparison-after  { color: var(--text); font-weight: 600; }
+.comparison-delta  { color: var(--primary); font-weight: 500; }
+
+.toast {
+  position: fixed; bottom: 20px; right: 20px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px;
+  color: var(--text); font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+  transform: translateY(80px); opacity: 0; transition: all 0.3s ease; z-index: 200;
+  display: flex; align-items: center; gap: 6px; max-width: 360px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* Quality tab */
+.filter-bar { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.filter-btn {
+  font-family: var(--font); font-size: 12px; font-weight: 500; padding: 5px 12px;
+  border-radius: 6px; border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.filter-btn:hover { background: var(--bg-muted); color: var(--text); }
+.filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.quality-progress { height: 6px; background: var(--bg-muted); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.quality-progress-fill { height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.4s ease; }
+/* Horizontal bar chart */
+.h-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 12px; }
+.h-bar-label { width: 56px; text-align: right; color: var(--text-secondary); font-weight: 500; flex-shrink: 0; }
+.h-bar-track { flex: 1; height: 20px; background: var(--bg-muted); border-radius: 4px; overflow: hidden; position: relative; }
+.h-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+.h-bar-value { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 600; color: var(--text); }
+.row-resolved td { opacity: 0.45; text-decoration: line-through; }
+.row-resolved .action-cell { text-decoration: none; opacity: 1; }
+.action-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px; display: inline-block; }
+.action-delete  { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.action-archive { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.action-review  { background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.15); }
+.callout {
+  background: var(--primary-bg); border: 1px solid var(--primary-border); border-radius: 8px;
+  padding: 12px 16px; font-size: 13px; color: var(--primary); font-weight: 500;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a class="logo" href="#"><div class="logo-mark">N</div>Nexus</a>
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="impact">Impact Summary</button>
+    <button class="tab-btn" data-tab="landscape">Data Landscape</button>
+    <button class="tab-btn" data-tab="matching">Matching Engine</button>
+    <button class="tab-btn" data-tab="quality">Data Quality</button>
+    <button class="tab-btn" data-tab="survivorship">Survivorship Rules</button>
+    <button class="tab-btn" data-tab="golden">Golden Record</button>
+  </nav>
+  <div class="header-actions">
+    <span class="theme-label" id="theme-label">Light</span>
+    <div class="theme-toggle" id="theme-toggle"></div>
+  </div>
+</header>
+
+<main class="main" id="main"></main>
+<div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+<script>
+// ================================================================
+// DATA SECTION — update values with real client data
+// ================================================================
+
+const DATA = {
+
+  summary: {
+    totalRecords: 688,
+    goldenRecords: 488,
+    duplicates: 200,
+    overallQuality: 93
+  },
+
+  erpSystems: [
+    { name: 'SAP',    color: '#2563eb', records: 412, golden: 231, valid: 411, suspect: 0, invalid: 1, duplicateRate: 43.9, qualityScore: 99, qualityLabel: 'Good' },
+    { name: 'Oracle', color: '#ea580c', records: 44,  golden: 42,  valid: 42,  suspect: 0, invalid: 2, duplicateRate: 4.5,  qualityScore: 95, qualityLabel: 'Good' },
+    { name: 'Epicor', color: '#9333ea', records: 216, golden: 203, valid: 192, suspect: 3, invalid: 21, duplicateRate: 6.0, qualityScore: 89, qualityLabel: 'Fair' },
+    { name: 'Infor',  color: '#0891b2', records: 16,  golden: 12,  valid: 13,  suspect: 1, invalid: 2, duplicateRate: 25.0, qualityScore: 81, qualityLabel: 'Fair' }
+  ],
+
+  dataDomains: ['Customer', 'Product', 'Organization'],
+
+  countryBreakdown: [
+    { country: 'UAE',        total: 602, golden: 404 },
+    { country: 'KSA',        total: 41,  golden: 41 },
+    { country: 'Qatar',      total: 12,  golden: 10 },
+    { country: 'Oman',       total: 6,   golden: 6 },
+    { country: 'USA',        total: 5,   golden: 5 },
+    { country: 'Bahrain',    total: 5,   golden: 5 },
+    { country: 'Kuwait',     total: 4,   golden: 4 },
+    { country: 'Pakistan',   total: 4,   golden: 4 },
+    { country: 'Lebanon',    total: 2,   golden: 2 },
+    { country: 'Azerbaijan', total: 2,   golden: 2 },
+    { country: 'Egypt',      total: 1,   golden: 1 },
+    { country: 'India',      total: 1,   golden: 1 },
+  ],
+
+  dataIssues: [
+    { issue: 'Naming inconsistencies across systems',  affected: '181 records', domain: 'Customer',     example: '"ABC Trading LLC" vs "ABC Trading" vs "ABC Trading L.L.C"' },
+    { issue: 'Country format mismatches',               affected: '26 records',  domain: 'Customer',     example: '"UAE" vs "United Arab Emirates" vs "U.A.E."' },
+    { issue: 'Invalid records flagged',                  affected: '26 records',  domain: 'Customer',     example: '21 invalid in Epicor, 2 in Oracle, 2 in Infor, 1 in SAP' },
+    { issue: 'Suspect records requiring review',         affected: '4 records',   domain: 'Customer',     example: '3 suspect in Epicor, 1 in Infor — partial attribute matches' },
+    { issue: 'SAP high duplicate concentration',         affected: '181 records', domain: 'Customer',     example: '43.9% duplicate rate — highest across all systems' },
+  ],
+
+  clusters: [
+    {
+      name: 'ABC Trading', confidence: 94, matchType: 'fuzzy',
+      records: [
+        { source: 'SAP',    name: 'ABC Trading LLC',   country: 'UAE',     phone: '+971-4-123-4567', address: 'Dubai, UAE',                  segment: 'Enterprise' },
+        { source: 'Oracle', name: 'ABC Trading',       country: 'UAE',     phone: '+971-4-123-4567', address: 'Dubai',                       segment: 'Enterprise' },
+        { source: 'Epicor', name: 'ABC Trading L.L.C', country: 'U.A.E.', phone: '04-1234567',      address: 'Dubai, United Arab Emirates', segment: 'Corp' }
+      ],
+      golden: { name: 'ABC Trading LLC', country: 'UAE', phone: '+971-4-123-4567', address: 'Dubai, United Arab Emirates', segment: 'Enterprise' }
+    },
+    {
+      name: 'Al Futtaim Group', confidence: 87, matchType: 'fuzzy',
+      records: [
+        { source: 'SAP',  name: 'Al Futtaim Group', country: 'UAE', phone: '+971-4-222-3333', address: 'Dubai Festival City, Dubai', segment: 'Enterprise' },
+        { source: 'Infor', name: 'Al-Futtaim Grp',  country: 'UAE', phone: '04-2223333',      address: 'Festival City, Dubai',       segment: 'Large Enterprise' }
+      ],
+      golden: { name: 'Al Futtaim Group', country: 'UAE', phone: '+971-4-222-3333', address: 'Dubai Festival City, Dubai', segment: 'Enterprise' }
+    },
+    {
+      name: 'Carrefour MENA', confidence: 91, matchType: 'rule-based',
+      records: [
+        { source: 'Oracle', name: 'Carrefour MENA',            country: 'UAE',   phone: '+971-4-555-0000', address: 'Deira City Centre, Dubai',     segment: 'Retail' },
+        { source: 'Epicor', name: 'Carrefour ME',              country: 'U.A.E', phone: '04-5550000',      address: 'City Centre Deira',            segment: 'Retail' },
+        { source: 'SAP',    name: 'Carrefour Middle East LLC', country: 'UAE',   phone: '+971-4-555-0000', address: 'Deira City Centre, Dubai, UAE', segment: 'Retail' }
+      ],
+      golden: { name: 'Carrefour Middle East LLC', country: 'UAE', phone: '+971-4-555-0000', address: 'Deira City Centre, Dubai, UAE', segment: 'Retail' }
+    }
+  ],
+
+  sourcePriority: ['SAP', 'Oracle', 'Epicor', 'Infor'],
+
+  fieldRules: [
+    { field: 'Customer Name', rule: 'Highest Completeness', winning: 'SAP',    rationale: 'Longest, most complete legal name wins' },
+    { field: 'Country',       rule: 'SAP Preferred',        winning: 'SAP',    rationale: 'SAP uses ISO standardized country codes' },
+    { field: 'Phone',         rule: 'Most Recent',          winning: 'Oracle', rationale: 'Oracle has the most recently updated contact data' },
+    { field: 'Address',       rule: 'Oracle Preferred',     winning: 'Oracle', rationale: 'Oracle address records are most complete' },
+    { field: 'Segment',       rule: 'Most Frequent Value',  winning: 'SAP',    rationale: '"Enterprise" appears in 3 of 4 systems' },
+    { field: 'Region',        rule: 'SAP Preferred',        winning: 'SAP',    rationale: 'SAP maintains official regional hierarchy' },
+    { field: 'Channel',       rule: 'Most Recent',          winning: 'Epicor', rationale: 'Epicor has latest channel assignment' },
+  ],
+
+  ruleOptions: ['Highest Completeness', 'Most Recent', 'SAP Preferred', 'Oracle Preferred', 'Epicor Preferred', 'Infor Preferred', 'Most Frequent Value'],
+
+  goldenRecord: {
+    id: 'GR-00001', created: '2025-03-15', updated: '2025-03-22', status: 'Active',
+    fields: [
+      { label: 'Customer Name', value: 'ABC Trading LLC',              source: 'SAP' },
+      { label: 'Country',       value: 'United Arab Emirates',         source: 'SAP' },
+      { label: 'Phone',         value: '+971-4-123-4567',             source: 'Oracle' },
+      { label: 'Address',       value: 'Al Quoz Industrial 3, Dubai', source: 'Oracle' },
+      { label: 'Segment',       value: 'Enterprise',                  source: 'SAP' },
+      { label: 'Region',        value: 'GCC — Middle East',           source: 'SAP' },
+      { label: 'Channel',       value: 'Direct',                      source: 'Epicor' },
+      { label: 'Payment Terms', value: 'Net 30',                      source: 'SAP' },
+      { label: 'Currency',      value: 'AED',                         source: 'Oracle' },
+    ],
+    crossIds: [
+      { golden: 'GR-00001', sap: 'SAP-4401122', oracle: 'ORA-88120', epicor: 'EPC-30210', infor: '—' },
+      { golden: 'GR-00002', sap: 'SAP-4401555', oracle: '—',         epicor: '—',          infor: 'INF-77431' },
+      { golden: 'GR-00003', sap: '—',           oracle: 'ORA-88305', epicor: 'EPC-30450', infor: 'INF-77602' },
+      { golden: 'GR-00004', sap: 'SAP-4402001', oracle: 'ORA-88410', epicor: 'EPC-30510', infor: 'INF-77700' },
+    ],
+    audit: [
+      { time: '2025-03-22 14:32', action: 'Phone updated from Oracle sync — previous value: +971-4-123-0000' },
+      { time: '2025-03-20 09:15', action: 'Address resolved via survivorship rule — Oracle preferred over Epicor' },
+      { time: '2025-03-18 11:40', action: 'Duplicate merged — Epicor record EPC-30210 linked to cluster' },
+      { time: '2025-03-15 08:00', action: 'Golden record created — initial match across SAP + Oracle' },
+    ]
+  },
+
+  impact: {
+    comparison: [
+      { metric: 'Total Source Records',       before: '688',           after: '488',       delta: '29.1% reduction' },
+      { metric: 'Duplicates Identified',      before: '200',           after: '0',         delta: 'Fully resolved' },
+      { metric: 'Valid Records',              before: '658 / 688',     after: '488 / 488', delta: '100% clean' },
+      { metric: 'Invalid Records',            before: '26',            after: '0',         delta: 'Removed' },
+      { metric: 'Cross-System Linkage',       before: '0 records',     after: '488',       delta: 'Fully linked' },
+      { metric: 'Country Standardization',    before: '12 formats',    after: '12 (ISO)',  delta: 'Normalized' },
+    ]
+  },
+
+  qualityRegister: [
+    { rowId:'R0022', source:'Epicor', srcId:'00028',      rawName:'UNFI',                                country:'USA', quality:'INVALID', coreName:'UNFI',                  gcid:'GCID-00020', golden:true,  action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0029', source:'Epicor', srcId:'00159',      rawName:'SPIN',                                country:'KSA', quality:'INVALID', coreName:'SPIN',                  gcid:'GCID-00027', golden:true,  action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0040', source:'Epicor', srcId:'00325',      rawName:'Sample',                              country:'KSA', quality:'INVALID', coreName:'SAMPLE',                gcid:'GCID-00036', golden:true,  action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0044', source:'Epicor', srcId:'00498',      rawName:'TAWA',                                country:'KSA', quality:'INVALID', coreName:'TAWA',                  gcid:'GCID-00040', golden:true,  action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0062', source:'Epicor', srcId:'00834',      rawName:'HALA',                                country:'KSA', quality:'INVALID', coreName:'HALA',                  gcid:'GCID-00058', golden:true,  action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0071', source:'Epicor', srcId:'00954',      rawName:'KSA',                                 country:'KSA', quality:'INVALID', coreName:'KSA',                   gcid:'GCID-00066', golden:true,  action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0101', source:'Epicor', srcId:'01322',      rawName:'MAF',                                 country:'UAE', quality:'INVALID', coreName:'MAF',                   gcid:'GCID-00095', golden:true,  action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0102', source:'Epicor', srcId:'02286',      rawName:'Sample',                              country:'UAE', quality:'INVALID', coreName:'SAMPLE',                gcid:'GCID-00096', golden:true,  action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0110', source:'Epicor', srcId:'02756',      rawName:'CASH Customer',                       country:'UAE', quality:'INVALID', coreName:'CASH CUSTOMER',          gcid:'GCID-00104', golden:true,  action:'ARCHIVE', reason:'Generic cash customer — no identifiable entity' },
+    { rowId:'R0111', source:'Epicor', srcId:'02758',      rawName:'CASH Customer',                       country:'UAE', quality:'INVALID', coreName:'CASH CUSTOMER',          gcid:'GCID-00104', golden:false, action:'ARCHIVE', reason:'Generic cash customer — no identifiable entity' },
+    { rowId:'R0112', source:'Epicor', srcId:'02760',      rawName:'CASH Customer',                       country:'UAE', quality:'INVALID', coreName:'CASH CUSTOMER',          gcid:'GCID-00104', golden:false, action:'ARCHIVE', reason:'Generic cash customer — no identifiable entity' },
+    { rowId:'R0114', source:'Epicor', srcId:'02793',      rawName:'BMB EMPLOYEES',                       country:'KSA', quality:'INVALID', coreName:'BMB EMPLOYEES',          gcid:'GCID-00106', golden:true,  action:'ARCHIVE', reason:'Internal employee record — not a trade customer' },
+    { rowId:'R0115', source:'Epicor', srcId:'02800',      rawName:'BMB EMPLOYEES',                       country:'UAE', quality:'INVALID', coreName:'BMB EMPLOYEES',          gcid:'GCID-00107', golden:true,  action:'ARCHIVE', reason:'Internal employee record — not a trade customer' },
+    { rowId:'R0117', source:'Epicor', srcId:'02825',      rawName:'CASH CUSTOMER - CHARBEL - DONT USE',  country:'UAE', quality:'INVALID', coreName:'CASH CUSTOMER CHARBEL',  gcid:'GCID-00109', golden:true,  action:'DELETE',  reason:'Explicitly marked do-not-use in source system' },
+    { rowId:'R0128', source:'Epicor', srcId:'03062',      rawName:'MAF',                                 country:'UAE', quality:'INVALID', coreName:'MAF',                   gcid:'GCID-00095', golden:false, action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0129', source:'Epicor', srcId:'03064',      rawName:'MAF',                                 country:'UAE', quality:'INVALID', coreName:'MAF',                   gcid:'GCID-00095', golden:false, action:'DELETE',  reason:'Placeholder / system test / single-word country code' },
+    { rowId:'R0139', source:'Epicor', srcId:'03161',      rawName:'CASH Customer',                       country:'UAE', quality:'INVALID', coreName:'CASH CUSTOMER',          gcid:'GCID-00104', golden:false, action:'ARCHIVE', reason:'Generic cash customer — no identifiable entity' },
+    { rowId:'R0145', source:'Epicor', srcId:'03215',      rawName:'CASH CUSTOMER - Aya Hanano',          country:'UAE', quality:'INVALID', coreName:'CASH CUSTOMER AYA',      gcid:'GCID-00133', golden:true,  action:'ARCHIVE', reason:'Generic cash customer — no identifiable entity' },
+    { rowId:'R0162', source:'Epicor', srcId:'03351',      rawName:'WEBSITE SALE - BMB',                  country:'UAE', quality:'INVALID', coreName:'WEBSITE SALE BMB',       gcid:'GCID-00150', golden:true,  action:'ARCHIVE', reason:'Digital channel placeholder — not a named customer' },
+    { rowId:'R0170', source:'Epicor', srcId:'03439',      rawName:'CASH CUSTOMER \u2013 HAZEL',          country:'UAE', quality:'INVALID', coreName:'CASH CUSTOMER HAZEL',    gcid:'GCID-00158', golden:true,  action:'ARCHIVE', reason:'Generic cash customer — no identifiable entity' },
+    { rowId:'R0231', source:'Epicor', srcId:'BMB08',      rawName:'BMB F&H',                             country:'UAE', quality:'INVALID', coreName:'BMB F&H',                gcid:'GCID-00218', golden:true,  action:'REVIEW',  reason:'Investigate and assign correct entity name' },
+    { rowId:'R0009', source:'Infor',  srcId:'C0015',      rawName:'CASH 15 (ALSSAD)',                    country:'UAE', quality:'INVALID', coreName:'CASH ALSSAD',            gcid:'GCID-00008', golden:true,  action:'ARCHIVE', reason:'Generic cash customer — no identifiable entity' },
+    { rowId:'R0011', source:'Infor',  srcId:'CASH-VIP',   rawName:'CASH- VIP INST.CUSTOMER',             country:'UAE', quality:'INVALID', coreName:'INST CUSTOMER CASH',     gcid:'GCID-00009', golden:true,  action:'ARCHIVE', reason:'Generic cash customer — no identifiable entity' },
+    { rowId:'R0673', source:'Oracle', srcId:'175114',     rawName:'M.H. ENTERPRISES (L.L.C.)',           country:'UAE', quality:'INVALID', coreName:'M H',                   gcid:'GCID-00474', golden:true,  action:'REVIEW',  reason:'Investigate and assign correct entity name' },
+    { rowId:'R0680', source:'Oracle', srcId:'352138',     rawName:'M/S CATERING SOLUTIONS TRADING LLC',  country:'OMAN',quality:'INVALID', coreName:'M S',                   gcid:'GCID-00480', golden:true,  action:'REVIEW',  reason:'Investigate and assign correct entity name' },
+    { rowId:'R0447', source:'SAP',    srcId:'1000174617', rawName:'K M TRADING CO.-',                    country:'UAE', quality:'INVALID', coreName:'K M',                   gcid:'GCID-00347', golden:true,  action:'REVIEW',  reason:'Investigate and assign correct entity name' },
+    { rowId:'R0039', source:'Epicor', srcId:'00323',      rawName:'MR. HABIB',                           country:'KSA', quality:'SUSPECT', coreName:'MR HABIB',               gcid:'GCID-00035', golden:true,  action:'REVIEW',  reason:'Individual person name detected — verify if business entity' },
+    { rowId:'R0041', source:'Epicor', srcId:'00406',      rawName:'ICE CANDY (MR ALI)',                  country:'KSA', quality:'SUSPECT', coreName:'ICE CANDY MR',           gcid:'GCID-00037', golden:true,  action:'REVIEW',  reason:'Individual person name detected — verify if business entity' },
+    { rowId:'R0206', source:'Epicor', srcId:'03689',      rawName:'Shaikha Ali',                         country:'UAE', quality:'SUSPECT', coreName:'SHAIKHA ALI',            gcid:'GCID-00193', golden:true,  action:'REVIEW',  reason:'Individual person name detected — verify if business entity' },
+    { rowId:'R0016', source:'Infor',  srcId:'S19075',     rawName:'SHIKHA MARIAM BINT AHMAD',            country:'UAE', quality:'SUSPECT', coreName:'SHIKHA MARIAM BINT',     gcid:'GCID-00014', golden:true,  action:'REVIEW',  reason:'Individual person name detected — verify if business entity' },
+  ]
+};
+
+// ================================================================
+// STATE — tracks dynamic interactions across screens
+// ================================================================
+const STATE = {
+  approvedClusters: new Set(),
+  duplicatesReduced: 0,
+  changedRuleFields: new Set(),
+  resolvedIssues: new Set(),
+  qualityFilter: 'ALL'
+};
+
+// ================================================================
+// HELPERS
+// ================================================================
+const $ = s => document.querySelector(s);
+const fmt = n => typeof n === 'number' ? n.toLocaleString() : n;
+const toast = msg => { $('#toast-msg').textContent = msg; $('#toast').classList.add('show'); setTimeout(() => $('#toast').classList.remove('show'), 3000); };
+function qColor(s) { return s >= 70 ? 'var(--green)' : s >= 55 ? 'var(--amber)' : 'var(--red)'; }
+function qBadge(s, l) { return `<span class="badge ${s>=70?'badge-green':s>=55?'badge-amber':'badge-red'}">${s} — ${l}</span>`; }
+function srcBadge(s) { const m={SAP:'badge-sap',Oracle:'badge-oracle',Epicor:'badge-epicor',Infor:'badge-infor'}; return `<span class="badge ${m[s]||''}">${s}</span>`; }
+function matchBadge(t) { return `<span class="badge ${t==='fuzzy'?'badge-amber':t==='exact'?'badge-green':'badge-primary'}">${t}</span>`; }
+function info(text, cls) { return `<span class="info-btn ${cls||''}" tabindex="0"><span class="tip">${text}</span>i</span>`; }
+
+// Compute winning source from current rules + priority
+function getWinningSource(fieldRule) {
+  const r = fieldRule.rule;
+  if (r.includes('Preferred')) {
+    const srcName = r.replace(' Preferred', '');
+    return srcName;
+  }
+  return fieldRule.winning;
+}
+
+// Update preferred rules when source priority changes
+function updatePreferredRules() {
+  DATA.fieldRules.forEach(r => {
+    if (r.rule.includes('Preferred')) {
+      const srcName = r.rule.replace(' Preferred', '');
+      r.winning = srcName;
+    }
+  });
+}
+
+// ================================================================
+// SCREEN RENDERERS
+// ================================================================
+
+function hBar(label, value, max, color) {
+  const pct = max ? (value / max * 100) : 0;
+  return `<div class="h-bar">
+    <span class="h-bar-label">${label}</span>
+    <div class="h-bar-track"><div class="h-bar-fill" style="width:${pct}%;background:${color}"></div><span class="h-bar-value">${fmt(value)}</span></div>
+  </div>`;
+}
+
+function renderLandscape() {
+  const d = DATA, s = d.summary;
+  const sysCt = d.erpSystems.length;
+  const liveDups = s.duplicates - STATE.duplicatesReduced;
+  const maxRec = Math.max(...d.erpSystems.map(e => e.records));
+  return `
+    <div class="page-header">
+      <div class="page-title">Data Landscape</div>
+      <div class="page-desc">${sysCt} connected systems — ${d.dataDomains.length} data domains (${d.dataDomains.join(', ')}) — ${d.countryBreakdown.length} countries</div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:14px">
+      <div class="card">
+        <div class="stat-value">${fmt(s.totalRecords)}</div>
+        <div class="stat-label">Total Source Records</div>
+      </div>
+      <div class="card">
+        <div class="stat-value">${fmt(s.goldenRecords)}</div>
+        <div class="stat-label">Golden Records</div>
+      </div>
+      <div class="card">
+        <div class="stat-value" id="dup-count">${fmt(liveDups)}</div>
+        <div class="stat-label">Duplicates Identified</div>
+      </div>
+      <div class="card">
+        <div class="stat-value">${s.overallQuality}<span style="font-size:14px;opacity:0.5"> / 100</span></div>
+        <div class="stat-label">Data Quality</div>
+        <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:${s.overallQuality}%;background:${qColor(s.overallQuality)}"></div></div>
+      </div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-title">Records by Source System</div>
+        <table class="tbl">
+          <thead><tr><th>System</th><th>Total</th><th>Golden</th><th>Valid</th><th>Suspect</th><th>Invalid</th><th>Dup. Rate</th></tr></thead>
+          <tbody>
+            ${d.erpSystems.map(e => `<tr>
+              <td>${srcBadge(e.name)}</td>
+              <td style="font-weight:600">${fmt(e.records)}</td>
+              <td style="font-weight:600">${fmt(e.golden)}</td>
+              <td>${fmt(e.valid)}</td>
+              <td>${e.suspect}</td>
+              <td>${e.invalid}</td>
+              <td style="font-weight:600">${e.duplicateRate}%</td>
+            </tr>`).join('')}
+            <tr style="font-weight:600;border-top:2px solid var(--border)">
+              <td>Total</td>
+              <td>${fmt(s.totalRecords)}</td>
+              <td>${fmt(s.goldenRecords)}</td>
+              <td>${d.erpSystems.reduce((a,e)=>a+e.valid,0)}</td>
+              <td>${d.erpSystems.reduce((a,e)=>a+e.suspect,0)}</td>
+              <td>${d.erpSystems.reduce((a,e)=>a+e.invalid,0)}</td>
+              <td>${((s.totalRecords - s.goldenRecords) / s.totalRecords * 100).toFixed(1)}%</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:16px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text-secondary)">Record Distribution</div>
+          ${d.erpSystems.map(e => hBar(e.name, e.records, maxRec, e.color)).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Records by Country</div>
+        <table class="tbl">
+          <thead><tr><th>Country</th><th>Total</th><th>Golden</th><th>Dup. Rate</th></tr></thead>
+          <tbody>
+            ${d.countryBreakdown.map(c => {
+              const dr = c.total > c.golden ? ((c.total - c.golden) / c.total * 100).toFixed(1) : '0.0';
+              return `<tr>
+                <td style="font-weight:500">${c.country}</td>
+                <td>${fmt(c.total)}</td>
+                <td style="font-weight:600">${fmt(c.golden)}</td>
+                <td style="font-weight:600">${dr}%</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Issues Identified</div>
+      <table class="tbl">
+        <thead><tr><th>Issue</th><th>Domain</th><th>Affected</th></tr></thead>
+        <tbody>
+          ${d.dataIssues.map(q => `<tr>
+            <td><div style="font-weight:500">${q.issue}</div><div style="font-size:11px;color:var(--text-muted);margin-top:1px">${q.example}</div></td>
+            <td><span class="badge badge-primary">${q.domain}</span></td>
+            <td style="font-weight:600">${q.affected}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderMatching() {
+  return `
+    <div class="page-header">
+      <div class="page-title">Matching Engine</div>
+      <div class="page-desc">The system identified these records as the same entity across different ERPs. Each card below is one record from one system — same entity, different data. ${info('The matching engine compares names, addresses, phone numbers, and business attributes across all systems. When records exceed the confidence threshold, they are grouped into a cluster for review.')}</div>
+    </div>
+    <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);display:flex;gap:16px;flex-wrap:wrap">
+      <span><strong>Approve</strong> = merge these records into one Golden Record using survivorship rules</span>
+      <span><strong>Override</strong> = send to team for manual review</span>
+      <span style="color:var(--red)"><strong>Red values</strong> = conflicts between systems</span>
+    </div>
+    ${DATA.clusters.map((c, i) => {
+      if (STATE.approvedClusters.has(i)) return renderApprovedCluster(c, i);
+      const cols = c.records.length === 2 ? 'source-cards-2' : 'source-cards-3';
+      const uniqSystems = [...new Set(c.records.map(r => r.source))];
+      const countries = [...new Set(c.records.map(r => r.country))];
+      const phones = [...new Set(c.records.map(r => r.phone))];
+      const segments = [...new Set(c.records.map(r => r.segment))];
+      const nameMismatch = [...new Set(c.records.map(r => r.name))].length > 1;
+      return `
+      <div class="cluster" id="cluster-${i}">
+        <div class="cluster-header">
+          <div class="cluster-title">
+            ${c.name}
+            <span class="badge badge-primary">${c.confidence}% ${info('Match confidence. Computed from name similarity (Jaro-Winkler), address proximity, phone normalization, and business context.')}</span>
+            ${matchBadge(c.matchType)}
+          </div>
+          <span style="font-size:11px;color:var(--text-muted)">${c.records.length} records from ${uniqSystems.map(s=>s).join(', ')}</span>
+        </div>
+        <div class="cluster-body">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">These ${c.records.length} records appear to be the same customer. ${nameMismatch ? 'Name varies across systems.' : 'Names match.'} ${countries.length > 1 ? 'Country format differs.' : ''} ${phones.length > 1 ? 'Phone format differs.' : ''}</div>
+          <div class="source-cards ${cols}">
+          ${c.records.map(r => `<div class="source-card">
+            <div class="source-card-header">${srcBadge(r.source)}</div>
+            <div class="source-row"><span class="lbl">Name</span><span class="val ${nameMismatch?'mismatch':''}">${r.name}</span></div>
+            <div class="source-row"><span class="lbl">Country</span><span class="val ${countries.length>1?'mismatch':''}">${r.country}</span></div>
+            <div class="source-row"><span class="lbl">Phone</span><span class="val ${phones.length>1?'mismatch':''}">${r.phone}</span></div>
+            <div class="source-row"><span class="lbl">Address</span><span class="val">${r.address}</span></div>
+            <div class="source-row"><span class="lbl">Segment</span><span class="val ${segments.length>1?'mismatch':''}">${r.segment}</span></div>
+          </div>`).join('')}
+        </div></div>
+        <div class="cluster-footer">
+          <button class="btn btn-outline" onclick="overrideCluster(${i})">Override</button>
+          <button class="btn btn-success" onclick="approveCluster(${i})">Approve Match</button>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function renderApprovedCluster(c, i) {
+  return `<div class="cluster" id="cluster-${i}">
+    <div class="cluster-approved">
+      <div class="title">Golden Record Created</div>
+      <div class="golden-preview">
+        <div class="golden-preview-badge">Golden Record</div>
+        <div class="source-row"><span class="lbl">Name</span><span class="val">${c.golden.name}</span></div>
+        <div class="source-row"><span class="lbl">Country</span><span class="val">${c.golden.country}</span></div>
+        <div class="source-row"><span class="lbl">Phone</span><span class="val">${c.golden.phone}</span></div>
+        <div class="source-row"><span class="lbl">Address</span><span class="val">${c.golden.address}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderQuality() {
+  const reg = DATA.qualityRegister;
+  const total = reg.length;
+  const resolved = STATE.resolvedIssues.size;
+  const delCt = reg.filter(r=>r.action==='DELETE').length;
+  const archCt = reg.filter(r=>r.action==='ARCHIVE').length;
+  const revCt = reg.filter(r=>r.action==='REVIEW').length;
+  const f = STATE.qualityFilter;
+  const filtered = reg.filter(r => {
+    if (f === 'ALL') return true;
+    if (f === 'DELETE' || f === 'ARCHIVE' || f === 'REVIEW') return r.action === f;
+    return r.source === f;
+  });
+  // Issue concentration by source
+  const srcCounts = {};
+  reg.forEach(r => { srcCounts[r.source] = (srcCounts[r.source]||0) + 1; });
+  const srcEntries = Object.entries(srcCounts).sort((a,b) => b[1] - a[1]);
+  const maxSrcCt = srcEntries[0]?.[1] || 1;
+  // Count unresolved in current filter for bulk confirm
+  const unresolvedInFilter = filtered.filter(r => !STATE.resolvedIssues.has(r.rowId)).length;
+  return `
+    <div class="page-header">
+      <div class="page-title">Data Quality</div>
+      <div class="page-desc">Automated issue detection — ${resolved} of ${total} resolved</div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:14px">
+      <div class="card">
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px">
+          <div class="stat-value">${total}</div>
+          <span style="font-size:13px;color:var(--text-secondary)">flagged records</span>
+          <span style="font-size:12px;color:var(--text-muted)">—</span>
+          <span style="font-size:12px"><span class="action-badge action-delete">${delCt} delete</span></span>
+          <span style="font-size:12px"><span class="action-badge action-archive">${archCt} archive</span></span>
+          <span style="font-size:12px"><span class="action-badge action-review">${revCt} review</span></span>
+        </div>
+        <div class="quality-progress"><div class="quality-progress-fill" style="width:${total?resolved/total*100:0}%"></div></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${resolved} of ${total} resolved</div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text-secondary)">Issue Concentration by Source ${info('Shows which source system contributes the most data quality issues. High concentration in a single system indicates systemic data entry problems.')}</div>
+        ${srcEntries.map(([src, ct]) => {
+          const col = DATA.erpSystems.find(e=>e.name===src)?.color || 'var(--text-muted)';
+          return hBar(src, ct, maxSrcCt, col);
+        }).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="filter-bar">
+        <button class="filter-btn ${f==='ALL'?'active':''}" onclick="setQualityFilter('ALL')">All (${total})</button>
+        <button class="filter-btn ${f==='DELETE'?'active':''}" onclick="setQualityFilter('DELETE')">Delete (${delCt})</button>
+        <button class="filter-btn ${f==='ARCHIVE'?'active':''}" onclick="setQualityFilter('ARCHIVE')">Archive (${archCt})</button>
+        <button class="filter-btn ${f==='REVIEW'?'active':''}" onclick="setQualityFilter('REVIEW')">Review (${revCt})</button>
+        <span style="width:1px;background:var(--border);margin:0 4px"></span>
+        ${[...new Set(reg.map(r=>r.source))].map(s => `<button class="filter-btn ${f===s?'active':''}" onclick="setQualityFilter('${s}')">${s}</button>`).join('')}
+        ${unresolvedInFilter > 0 && f !== 'ALL' ? `<button class="btn btn-primary" style="margin-left:auto;font-size:11px;padding:5px 12px" onclick="confirmAllFiltered()">Confirm All ${f} (${unresolvedInFilter})</button>` : ''}
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Source</th><th>Src ID</th><th>Raw Name</th><th>Country</th><th>Status</th><th>Recommended</th><th>Reason</th><th style="text-align:right">Action</th></tr></thead>
+          <tbody>
+            ${filtered.map(r => {
+              const isResolved = STATE.resolvedIssues.has(r.rowId);
+              const rowCls = isResolved ? 'row-resolved' : '';
+              const qBdg = r.quality === 'INVALID' ? '<span class="badge badge-red">INVALID</span>' : '<span class="badge badge-amber">SUSPECT</span>';
+              const aBdg = r.action === 'DELETE' ? '<span class="action-badge action-delete">DELETE</span>' : r.action === 'ARCHIVE' ? '<span class="action-badge action-archive">ARCHIVE</span>' : '<span class="action-badge action-review">REVIEW</span>';
+              const actionCell = isResolved
+                ? '<span class="badge badge-green">Resolved</span>'
+                : `<button class="btn btn-success" style="padding:4px 10px;font-size:11px" onclick="confirmIssue('${r.rowId}')">Confirm</button> <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="overrideIssue('${r.rowId}')">Override</button>`;
+              return `<tr class="${rowCls}">
+                <td>${srcBadge(r.source)}</td>
+                <td style="font-family:monospace;font-size:12px">${r.srcId}</td>
+                <td style="font-weight:500">${r.rawName}</td>
+                <td>${r.country}</td>
+                <td>${qBdg}</td>
+                <td>${aBdg}</td>
+                <td style="font-size:12px;color:var(--text-secondary);max-width:220px">${r.reason}</td>
+                <td class="action-cell" style="text-align:right;white-space:nowrap">${actionCell}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderSurvivorship() {
+  return `
+    <div class="page-header">
+      <div class="page-title">Survivorship Rules</div>
+      <div class="page-desc">Conflict resolution rules for building the Golden Record</div>
+    </div>
+    <div class="rules-layout">
+      <div><div class="card">
+        <div class="card-title">Source Priority ${info('Global default priority when multiple systems have valid values for the same field. Higher rank wins. Drag to reorder — changes are reflected immediately in the field rules.')}</div>
+        <ul class="priority-list" id="priority-list">
+          ${DATA.sourcePriority.map((s, i) => `
+            <li class="priority-item" draggable="true" data-idx="${i}">
+              <span class="drag-handle">⠿</span>
+              <span class="priority-rank">${i + 1}</span>
+              <span style="font-weight:500;flex:1;font-size:13px">${s}</span>
+              <span class="priority-dot" style="background:${DATA.erpSystems.find(e => e.name === s)?.color || '#666'}"></span>
+            </li>
+          `).join('')}
+        </ul>
+      </div></div>
+      <div class="card">
+        <div class="card-title">Field-Level Resolution ${info('Each attribute uses its own resolution strategy. Changing a rule here updates the Golden Record on the next tab in real time. Rule types: Highest Completeness = longest non-null value wins. Most Recent = latest timestamp wins. [Source] Preferred = always use this source. Most Frequent = majority value across systems wins.')}</div>
+        <table class="tbl">
+          <thead><tr><th>Field</th><th>Resolution Rule</th><th>Winning Source</th><th>Rationale</th></tr></thead>
+          <tbody>
+            ${DATA.fieldRules.map((r, i) => `<tr>
+              <td style="font-weight:600">${r.field}</td>
+              <td><select class="rule-select" data-idx="${i}" onchange="onRuleChange(${i}, this.value)">
+                ${DATA.ruleOptions.map(o => `<option ${o === r.rule ? 'selected' : ''}>${o}</option>`).join('')}
+              </select></td>
+              <td id="winning-${i}">${srcBadge(r.winning)}</td>
+              <td style="color:var(--text-secondary);font-size:12px">${r.rationale}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="previewImpact()">Preview Impact ${info('Calculates how many existing golden records would change if current rules were applied.')}</button>
+      </div>
+    </div>`;
+}
+
+function renderGolden() {
+  const g = DATA.goldenRecord;
+  return `
+    <div class="page-header">
+      <div class="page-title">Golden Record</div>
+      <div class="page-desc">Unified master record with source lineage and cross-system traceability</div>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="Search by customer name, Golden ID, or source system ID…" />
+    </div>
+    <div class="grid grid-2-1">
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="golden-meta">
+            <span><strong>Golden ID:</strong> ${g.id}</span>
+            <span><strong>Created:</strong> ${g.created}</span>
+            <span><strong>Updated:</strong> ${g.updated}</span>
+          </div>
+          <div class="golden-fields">
+            ${g.fields.map((f, i) => {
+              const highlight = STATE.changedRuleFields.has(f.label) ? 'highlight' : '';
+              return `<div class="golden-field ${highlight}" id="gf-${i}">
+                <div class="golden-field-label">${f.label} ${srcBadge(f.source)}</div>
+                <div class="golden-field-value">${f.value}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Cross-System ID Mapping ${info('Links each Golden Record ID to the corresponding record ID in every source ERP. Enables bidirectional traceability — look up any source ID to find its golden record, or vice versa.')}</div>
+          <table class="tbl">
+            <thead><tr><th>Golden ID</th>${DATA.erpSystems.map(e => `<th>${e.name} ID</th>`).join('')}</tr></thead>
+            <tbody>
+              ${g.crossIds.map(r => `<tr>
+                <td style="color:var(--primary);font-weight:600">${r.golden}</td>
+                <td style="font-family:monospace;font-size:12px">${r.sap}</td>
+                <td style="font-family:monospace;font-size:12px">${r.oracle}</td>
+                <td style="font-family:monospace;font-size:12px">${r.epicor}</td>
+                <td style="font-family:monospace;font-size:12px">${r.infor}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Record Profile</div>
+          ${(() => {
+            const populated = g.fields.filter(f => f.value).length;
+            const total = g.fields.length;
+            const sources = {};
+            g.fields.forEach(f => { sources[f.source] = (sources[f.source]||0) + 1; });
+            const srcEntries = Object.entries(sources).sort((a,b) => b[1] - a[1]);
+            const firstId = g.crossIds[0] || {};
+            const linked = [firstId.sap, firstId.oracle, firstId.epicor, firstId.infor].filter(v => v && v !== '—').length;
+            const totalSys = DATA.erpSystems.length;
+            return `
+              <div style="font-size:12px;margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                  <span style="color:var(--text-secondary)">Completeness</span>
+                  <span style="font-weight:600">${populated} / ${total} fields</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width:${populated/total*100}%;background:var(--primary)"></div></div>
+              </div>
+              <div style="font-size:12px;margin-bottom:10px">
+                <div style="color:var(--text-secondary);margin-bottom:6px">Source Contribution</div>
+                ${srcEntries.map(([src, ct]) => `
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                    ${srcBadge(src)}
+                    <div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${ct/total*100}%;background:${DATA.erpSystems.find(e=>e.name===src)?.color||'var(--text-muted)'}"></div></div>
+                    <span style="font-weight:600;min-width:20px;text-align:right;font-size:11px">${ct}</span>
+                  </div>
+                `).join('')}
+              </div>
+              <div style="font-size:12px">
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:var(--text-secondary)">Linked Systems</span>
+                  <span style="font-weight:600">${linked} / ${totalSys}</span>
+                </div>
+              </div>
+            `;
+          })()}
+        </div>
+        <div class="card">
+          <div class="card-title">Change Log ${info('Chronological audit trail of all modifications. Includes rule-triggered updates, syncs, and merge events.')}</div>
+          ${g.audit.map(a => `<div class="audit-row">
+            <div class="audit-dot"></div>
+            <div style="flex:1"><div style="font-size:12px">${a.action}</div><div class="audit-time">${a.time}</div></div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderImpact() {
+  const d = DATA.impact;
+  const s = DATA.summary;
+  const totalValid = DATA.erpSystems.reduce((a,e)=>a+e.valid,0);
+  const totalInvalid = DATA.erpSystems.reduce((a,e)=>a+e.invalid,0);
+  const totalSuspect = DATA.erpSystems.reduce((a,e)=>a+e.suspect,0);
+  const afterPct = (s.goldenRecords / s.totalRecords * 100);
+  const qReg = DATA.qualityRegister;
+  const qResolved = STATE.resolvedIssues.size;
+  const delCt = qReg.filter(r=>r.action==='DELETE').length;
+  const archCt = qReg.filter(r=>r.action==='ARCHIVE').length;
+  const revCt = qReg.filter(r=>r.action==='REVIEW').length;
+  const avgConf = (DATA.clusters.reduce((a,c)=>a+c.confidence,0) / DATA.clusters.length).toFixed(1);
+  // Expanded before/after — every row ties to another tab
+  const fullComparison = [
+    { metric: 'Total Source Records',      before: fmt(s.totalRecords), after: fmt(s.goldenRecords), delta: ((s.totalRecords-s.goldenRecords)/s.totalRecords*100).toFixed(1)+'% reduction' },
+    { metric: 'Duplicates',                before: fmt(s.duplicates),   after: '0',                  delta: 'Fully resolved' },
+    { metric: 'Valid Records',             before: totalValid+' / '+s.totalRecords, after: s.goldenRecords+' / '+s.goldenRecords, delta: '100% clean' },
+    { metric: 'Invalid Records',           before: fmt(totalInvalid),   after: '0',                  delta: 'Removed' },
+    { metric: 'Suspect Records',           before: fmt(totalSuspect),   after: '0',                  delta: 'Resolved' },
+    { metric: 'Cross-System Linkage',      before: '0',                 after: fmt(s.goldenRecords),  delta: 'Fully linked' },
+    { metric: 'Country Standardization',   before: DATA.countryBreakdown.length+' formats', after: DATA.countryBreakdown.length+' (ISO)', delta: 'Normalized' },
+    { metric: 'Quality Issues Flagged',    before: '0',                 after: fmt(qReg.length),      delta: qReg.length+' identified' },
+    { metric: 'Records to Delete',         before: '—',                 after: fmt(delCt),            delta: 'Placeholders removed' },
+    { metric: 'Records to Archive',        before: '—',                 after: fmt(archCt),           delta: 'Non-trade entities' },
+    { metric: 'Records for Review',        before: '—',                 after: fmt(revCt),            delta: 'Sent for team review' },
+    { metric: 'Matching Clusters',         before: '0',                 after: fmt(DATA.clusters.length), delta: avgConf+'% avg confidence' },
+    { metric: 'Survivorship Rules',        before: '0',                 after: fmt(DATA.fieldRules.length), delta: 'Field-level resolution' },
+  ];
+  return `
+    <div class="page-header">
+      <div class="page-title">Impact Summary</div>
+      <div class="page-desc">${DATA.erpSystems.length} systems consolidated — ${DATA.dataDomains.length} data domains — ${DATA.countryBreakdown.length} countries</div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:14px">
+      <div class="card" style="text-align:center;padding:24px 16px">
+        <div class="impact-value">${fmt(s.totalRecords)}</div>
+        <div class="stat-label" style="justify-content:center">Records Processed ${info('Master data records extracted from ' + DATA.erpSystems.length + ' ERP systems: ' + DATA.erpSystems.map(e=>e.name+' ('+e.records+')').join(', '))}</div>
+      </div>
+      <div class="card" style="text-align:center;padding:24px 16px">
+        <div class="impact-value">${fmt(s.goldenRecords)}</div>
+        <div class="stat-label" style="justify-content:center">Golden Records ${info('Unique deduplicated entities after matching and survivorship. Each represents one real-world customer, product, or org unit.', 'tip-left')}</div>
+      </div>
+      <div class="card" style="text-align:center;padding:24px 16px">
+        <div class="impact-value">${fmt(s.duplicates)}</div>
+        <div class="stat-label" style="justify-content:center">Duplicates Resolved ${info('Records identified as the same entity across systems. ' + fmt(s.totalRecords) + ' source records consolidated into ' + fmt(s.goldenRecords) + ' golden records = ' + ((s.duplicates/s.totalRecords)*100).toFixed(1) + '% duplicate rate.', 'tip-left')}</div>
+      </div>
+      <div class="card" style="text-align:center;padding:24px 16px">
+        <div class="impact-value">${qResolved} / ${qReg.length}</div>
+        <div class="stat-label" style="justify-content:center">Quality Issues Actioned ${info(qReg.length + ' records flagged as invalid or suspect. ' + delCt + ' recommended for deletion, ' + archCt + ' for archive, ' + revCt + ' for manual review. Resolve on the Data Quality tab.', 'tip-left')}</div>
+      </div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-title">Before &amp; After</div>
+        <table class="tbl">
+          <thead><tr><th>Metric</th><th>Before MDM</th><th>After MDM</th><th>Change</th></tr></thead>
+          <tbody>
+            ${fullComparison.map(r => `<tr>
+              <td style="font-weight:500">${r.metric}</td>
+              <td class="comparison-before">${r.before}</td>
+              <td class="comparison-after">${r.after}</td>
+              <td class="comparison-delta">${r.delta}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Record Consolidation</div>
+          <div style="margin-bottom:16px">
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">Before — ${fmt(s.totalRecords)} source records</div>
+            <div style="display:flex;height:24px;border-radius:5px;overflow:hidden;gap:1px">
+              <div style="flex:${totalValid};background:var(--border)"></div>
+              <div style="flex:${totalSuspect||0.5};background:var(--amber);min-width:${totalSuspect?'3px':'0'}"></div>
+              <div style="flex:${totalInvalid};background:var(--red);min-width:3px"></div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--text-muted)">
+              <span>${totalValid} valid</span><span>${totalSuspect} suspect</span><span>${totalInvalid} invalid</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">After — ${fmt(s.goldenRecords)} golden records</div>
+            <div style="display:flex;height:24px;border-radius:5px;overflow:hidden">
+              <div style="flex:${afterPct};background:var(--primary)"></div>
+              <div style="flex:${100-afterPct};background:var(--bg-muted)"></div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--text-muted)">
+              <span>${fmt(s.goldenRecords)} clean, deduplicated</span><span>${fmt(s.duplicates)} removed</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">System-Level Impact</div>
+          <table class="tbl">
+            <thead><tr><th>System</th><th>In</th><th>Golden</th><th>Dupes</th><th>Invalid</th><th>Dup Rate</th></tr></thead>
+            <tbody>
+              ${DATA.erpSystems.map(e => `<tr>
+                <td>${srcBadge(e.name)}</td>
+                <td>${fmt(e.records)}</td>
+                <td style="font-weight:600">${fmt(e.golden)}</td>
+                <td>${e.records - e.golden}</td>
+                <td>${e.invalid}</td>
+                <td style="font-weight:600">${e.duplicateRate}%</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+const screens = { landscape: renderLandscape, matching: renderMatching, quality: renderQuality, survivorship: renderSurvivorship, golden: renderGolden, impact: renderImpact };
+let currentTab = 'landscape';
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  $('#main').innerHTML = `<div class="screen active">${screens[tab]()}</div>`;
+  if (tab === 'survivorship') initDragDrop();
+  // Clear highlights after animation
+  if (tab === 'golden') setTimeout(() => STATE.changedRuleFields.clear(), 2000);
+}
+$('#tabs').addEventListener('click', e => { if (e.target.classList.contains('tab-btn')) switchTab(e.target.dataset.tab); });
+
+// ================================================================
+// INTERACTIONS
+// ================================================================
+
+function approveCluster(idx) {
+  if (STATE.approvedClusters.has(idx)) return;
+  const c = DATA.clusters[idx];
+  STATE.approvedClusters.add(idx);
+  STATE.duplicatesReduced += (c.records.length - 1); // merged records become 1
+  // Re-render just this cluster with animation
+  const el = document.getElementById('cluster-' + idx);
+  el.outerHTML = renderApprovedCluster(c, idx);
+  toast(`Golden Record created for ${c.name} — ${c.records.length - 1} duplicates resolved`);
+}
+
+function overrideCluster(idx) { toast('Sent to team for manual review'); }
+
+function confirmIssue(rowId) {
+  STATE.resolvedIssues.add(rowId);
+  const rec = DATA.qualityRegister.find(r => r.rowId === rowId);
+  switchTab('quality');
+  toast(`${rec.rawName} — ${rec.action.toLowerCase()}d`);
+}
+function overrideIssue(rowId) { toast('Sent to team for review'); }
+function setQualityFilter(f) { STATE.qualityFilter = f; switchTab('quality'); }
+function confirmAllFiltered() {
+  const f = STATE.qualityFilter;
+  const reg = DATA.qualityRegister.filter(r => {
+    if (f === 'DELETE' || f === 'ARCHIVE' || f === 'REVIEW') return r.action === f;
+    return r.source === f;
+  });
+  let ct = 0;
+  reg.forEach(r => { if (!STATE.resolvedIssues.has(r.rowId)) { STATE.resolvedIssues.add(r.rowId); ct++; } });
+  switchTab('quality');
+  toast(`${ct} records confirmed`);
+}
+
+function onRuleChange(idx, newRule) {
+  const rule = DATA.fieldRules[idx];
+  rule.rule = newRule;
+  // Update winning source for Preferred rules
+  if (newRule.includes('Preferred')) {
+    rule.winning = newRule.replace(' Preferred', '');
+  }
+  // Update the golden record source to match
+  const grField = DATA.goldenRecord.fields.find(f => f.label === rule.field);
+  if (grField) {
+    grField.source = rule.winning;
+    STATE.changedRuleFields.add(rule.field);
+  }
+  // Re-render winning source badge
+  const cell = document.getElementById('winning-' + idx);
+  if (cell) cell.innerHTML = srcBadge(rule.winning);
+  toast(`${rule.field} → ${newRule} (source: ${rule.winning})`);
+}
+
+function previewImpact() {
+  const affected = 3 + STATE.changedRuleFields.size;
+  toast(`${affected} golden records would be updated`);
+}
+
+function initDragDrop() {
+  const list = document.getElementById('priority-list');
+  if (!list) return;
+  let dragIdx = null;
+  list.querySelectorAll('.priority-item').forEach(item => {
+    item.addEventListener('dragstart', e => { dragIdx = +item.dataset.idx; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    item.addEventListener('dragend', () => { item.classList.remove('dragging'); list.querySelectorAll('.priority-item').forEach(i => i.classList.remove('drag-over')); });
+    item.addEventListener('dragover', e => { e.preventDefault(); item.classList.add('drag-over'); });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      const dropIdx = +item.dataset.idx;
+      if (dragIdx === null || dragIdx === dropIdx) return;
+      const moved = DATA.sourcePriority.splice(dragIdx, 1)[0];
+      DATA.sourcePriority.splice(dropIdx, 0, moved);
+      updatePreferredRules();
+      // Update golden record sources for preferred rules
+      DATA.fieldRules.forEach(r => {
+        const grField = DATA.goldenRecord.fields.find(f => f.label === r.field);
+        if (grField && r.rule.includes('Preferred')) {
+          grField.source = r.winning;
+          STATE.changedRuleFields.add(r.field);
+        }
+      });
+      switchTab('survivorship');
+      toast('Source priority updated — field rules refreshed');
+    });
+  });
+}
+
+$('#theme-toggle').addEventListener('click', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  $('#theme-label').textContent = isDark ? 'Light' : 'Dark';
+});
+
+switchTab('impact');
+</script>
+</body>
+</html>
