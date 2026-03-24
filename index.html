@@ -275,6 +275,19 @@ table.tbl tbody tr:hover { background: var(--bg-subtle); }
 }
 .toast.show { transform: translateY(0); opacity: 1; }
 
+/* Pagination */
+.pager {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  padding: 10px 0 0; font-size: 12px; color: var(--text-secondary);
+}
+.pager-btn {
+  font-family: var(--font); font-size: 12px; font-weight: 500; padding: 4px 10px;
+  border-radius: 5px; border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.pager-btn:hover:not(:disabled) { background: var(--bg-muted); color: var(--text); }
+.pager-btn:disabled { opacity: 0.4; cursor: default; }
+
 /* Quality tab */
 .filter-bar { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
 .filter-btn {
@@ -433,6 +446,27 @@ const DATA = {
       { golden: 'GR-00002', sap: 'SAP-4401555', oracle: '—',         epicor: '—',          infor: 'INF-77431' },
       { golden: 'GR-00003', sap: '—',           oracle: 'ORA-88305', epicor: 'EPC-30450', infor: 'INF-77602' },
       { golden: 'GR-00004', sap: 'SAP-4402001', oracle: 'ORA-88410', epicor: 'EPC-30510', infor: 'INF-77700' },
+      { golden: 'GR-00005', sap: 'SAP-4402100', oracle: 'ORA-88502', epicor: '—',          infor: '—' },
+      { golden: 'GR-00006', sap: 'SAP-4402203', oracle: '—',         epicor: 'EPC-30620', infor: 'INF-77815' },
+      { golden: 'GR-00007', sap: 'SAP-4402310', oracle: 'ORA-88610', epicor: 'EPC-30715', infor: '—' },
+      { golden: 'GR-00008', sap: '—',           oracle: 'ORA-88720', epicor: 'EPC-30801', infor: 'INF-77920' },
+      { golden: 'GR-00009', sap: 'SAP-4402415', oracle: '—',         epicor: '—',          infor: '—' },
+      { golden: 'GR-00010', sap: 'SAP-4402520', oracle: 'ORA-88830', epicor: 'EPC-30905', infor: 'INF-78010' },
+      { golden: 'GR-00011', sap: 'SAP-4402601', oracle: 'ORA-88915', epicor: '—',          infor: '—' },
+      { golden: 'GR-00012', sap: '—',           oracle: '—',         epicor: 'EPC-31010', infor: 'INF-78120' },
+      { golden: 'GR-00013', sap: 'SAP-4402715', oracle: 'ORA-89020', epicor: 'EPC-31105', infor: '—' },
+      { golden: 'GR-00014', sap: 'SAP-4402810', oracle: '—',         epicor: 'EPC-31210', infor: 'INF-78230' },
+      { golden: 'GR-00015', sap: 'SAP-4402905', oracle: 'ORA-89115', epicor: '—',          infor: '—' },
+      { golden: 'GR-00016', sap: '—',           oracle: 'ORA-89210', epicor: 'EPC-31320', infor: 'INF-78340' },
+      { golden: 'GR-00017', sap: 'SAP-4403010', oracle: '—',         epicor: '—',          infor: '—' },
+      { golden: 'GR-00018', sap: 'SAP-4403115', oracle: 'ORA-89305', epicor: 'EPC-31415', infor: 'INF-78440' },
+      { golden: 'GR-00019', sap: '—',           oracle: 'ORA-89410', epicor: 'EPC-31510', infor: '—' },
+      { golden: 'GR-00020', sap: 'SAP-4403220', oracle: 'ORA-89505', epicor: '—',          infor: 'INF-78550' },
+      { golden: 'GR-00021', sap: 'SAP-4403305', oracle: '—',         epicor: 'EPC-31620', infor: '—' },
+      { golden: 'GR-00022', sap: '—',           oracle: 'ORA-89610', epicor: 'EPC-31710', infor: 'INF-78650' },
+      { golden: 'GR-00023', sap: 'SAP-4403410', oracle: 'ORA-89715', epicor: 'EPC-31815', infor: 'INF-78760' },
+      { golden: 'GR-00024', sap: 'SAP-4403520', oracle: '—',         epicor: '—',          infor: 'INF-78870' },
+      { golden: 'GR-00025', sap: 'SAP-4403605', oracle: 'ORA-89820', epicor: 'EPC-31920', infor: '—' },
     ],
     audit: [
       { time: '2025-03-22 14:32', action: 'Phone updated from Oracle sync — previous value: +971-4-123-0000' },
@@ -495,8 +529,10 @@ const STATE = {
   duplicatesReduced: 0,
   changedRuleFields: new Set(),
   resolvedIssues: new Set(),
-  qualityFilter: 'ALL'
+  qualityFilter: 'ALL',
+  pages: {} // pagination state per table: { tableId: currentPage }
 };
+const PAGE_SIZE = 10;
 
 // ================================================================
 // HELPERS
@@ -509,6 +545,21 @@ function qBadge(s, l) { return `<span class="badge ${s>=70?'badge-green':s>=55?'
 function srcBadge(s) { const m={SAP:'badge-sap',Oracle:'badge-oracle',Epicor:'badge-epicor',Infor:'badge-infor'}; return `<span class="badge ${m[s]||''}">${s}</span>`; }
 function matchBadge(t) { return `<span class="badge ${t==='fuzzy'?'badge-amber':t==='exact'?'badge-green':'badge-primary'}">${t}</span>`; }
 function info(text, cls) { return `<span class="info-btn ${cls||''}" tabindex="0"><span class="tip">${text}</span>i</span>`; }
+
+function getPage(id) { return STATE.pages[id] || 1; }
+function paginate(rows, id) {
+  const page = getPage(id);
+  const total = Math.ceil(rows.length / PAGE_SIZE);
+  const start = (page - 1) * PAGE_SIZE;
+  const sliced = rows.slice(start, start + PAGE_SIZE);
+  const controls = rows.length > PAGE_SIZE ? `<div class="pager">
+    <span>Page ${page} of ${total}</span>
+    <button class="pager-btn" onclick="goPage('${id}',${page-1})" ${page<=1?'disabled':''}>Prev</button>
+    <button class="pager-btn" onclick="goPage('${id}',${page+1})" ${page>=total?'disabled':''}>Next</button>
+  </div>` : '';
+  return { sliced, controls };
+}
+function goPage(id, p) { STATE.pages[id] = p; switchTab(currentTab); }
 
 // Compute winning source from current rules + priority
 function getWinningSource(fieldRule) {
@@ -602,23 +653,21 @@ function renderLandscape() {
           ${d.erpSystems.map(e => hBar(e.name, e.records, maxRec, e.color)).join('')}
         </div>
       </div>
-      <div class="card">
-        <div class="card-title">Records by Country</div>
-        <table class="tbl">
-          <thead><tr><th>Country</th><th>Total</th><th>Golden</th><th>Dup. Rate</th></tr></thead>
-          <tbody>
-            ${d.countryBreakdown.map(c => {
-              const dr = c.total > c.golden ? ((c.total - c.golden) / c.total * 100).toFixed(1) : '0.0';
-              return `<tr>
-                <td style="font-weight:500">${c.country}</td>
-                <td>${fmt(c.total)}</td>
-                <td style="font-weight:600">${fmt(c.golden)}</td>
-                <td style="font-weight:600">${dr}%</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
+      ${(() => {
+        const allRows = d.countryBreakdown.map(c => {
+          const dr = c.total > c.golden ? ((c.total - c.golden) / c.total * 100).toFixed(1) : '0.0';
+          return `<tr><td style="font-weight:500">${c.country}</td><td>${fmt(c.total)}</td><td style="font-weight:600">${fmt(c.golden)}</td><td style="font-weight:600">${dr}%</td></tr>`;
+        });
+        const { sliced, controls } = paginate(allRows, 'country');
+        return `<div class="card">
+          <div class="card-title">Records by Country</div>
+          <table class="tbl">
+            <thead><tr><th>Country</th><th>Total</th><th>Golden</th><th>Dup. Rate</th></tr></thead>
+            <tbody>${sliced.join('')}</tbody>
+          </table>
+          ${controls}
+        </div>`;
+      })()}
     </div>
     <div class="card">
       <div class="card-title">Key Issues Identified</div>
@@ -755,32 +804,26 @@ function renderQuality() {
         ${[...new Set(reg.map(r=>r.source))].map(s => `<button class="filter-btn ${f===s?'active':''}" onclick="setQualityFilter('${s}')">${s}</button>`).join('')}
         ${unresolvedInFilter > 0 && f !== 'ALL' ? `<button class="btn btn-primary" style="margin-left:auto;font-size:11px;padding:5px 12px" onclick="confirmAllFiltered()">Confirm All ${f} (${unresolvedInFilter})</button>` : ''}
       </div>
-      <div style="overflow-x:auto">
-        <table class="tbl">
-          <thead><tr><th>Source</th><th>Src ID</th><th>Raw Name</th><th>Country</th><th>Status</th><th>Recommended</th><th>Reason</th><th style="text-align:right">Action</th></tr></thead>
-          <tbody>
-            ${filtered.map(r => {
-              const isResolved = STATE.resolvedIssues.has(r.rowId);
-              const rowCls = isResolved ? 'row-resolved' : '';
-              const qBdg = r.quality === 'INVALID' ? '<span class="badge badge-red">INVALID</span>' : '<span class="badge badge-amber">SUSPECT</span>';
-              const aBdg = r.action === 'DELETE' ? '<span class="action-badge action-delete">DELETE</span>' : r.action === 'ARCHIVE' ? '<span class="action-badge action-archive">ARCHIVE</span>' : '<span class="action-badge action-review">REVIEW</span>';
-              const actionCell = isResolved
-                ? '<span class="badge badge-green">Resolved</span>'
-                : `<button class="btn btn-success" style="padding:4px 10px;font-size:11px" onclick="confirmIssue('${r.rowId}')">Confirm</button> <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="overrideIssue('${r.rowId}')">Override</button>`;
-              return `<tr class="${rowCls}">
-                <td>${srcBadge(r.source)}</td>
-                <td style="font-family:monospace;font-size:12px">${r.srcId}</td>
-                <td style="font-weight:500">${r.rawName}</td>
-                <td>${r.country}</td>
-                <td>${qBdg}</td>
-                <td>${aBdg}</td>
-                <td style="font-size:12px;color:var(--text-secondary);max-width:220px">${r.reason}</td>
-                <td class="action-cell" style="text-align:right;white-space:nowrap">${actionCell}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
+      ${(() => {
+        const allRows = filtered.map(r => {
+          const isResolved = STATE.resolvedIssues.has(r.rowId);
+          const rowCls = isResolved ? 'row-resolved' : '';
+          const qBdg = r.quality === 'INVALID' ? '<span class="badge badge-red">INVALID</span>' : '<span class="badge badge-amber">SUSPECT</span>';
+          const aBdg = r.action === 'DELETE' ? '<span class="action-badge action-delete">DELETE</span>' : r.action === 'ARCHIVE' ? '<span class="action-badge action-archive">ARCHIVE</span>' : '<span class="action-badge action-review">REVIEW</span>';
+          const actionCell = isResolved
+            ? '<span class="badge badge-green">Resolved</span>'
+            : `<button class="btn btn-success" style="padding:4px 10px;font-size:11px" onclick="confirmIssue('${r.rowId}')">Confirm</button> <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="overrideIssue('${r.rowId}')">Override</button>`;
+          return `<tr class="${rowCls}"><td>${srcBadge(r.source)}</td><td style="font-family:monospace;font-size:12px">${r.srcId}</td><td style="font-weight:500">${r.rawName}</td><td>${r.country}</td><td>${qBdg}</td><td>${aBdg}</td><td style="font-size:12px;color:var(--text-secondary);max-width:220px">${r.reason}</td><td class="action-cell" style="text-align:right;white-space:nowrap">${actionCell}</td></tr>`;
+        });
+        const { sliced, controls } = paginate(allRows, 'quality');
+        return `<div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Source</th><th>Src ID</th><th>Raw Name</th><th>Country</th><th>Status</th><th>Recommended</th><th>Reason</th><th style="text-align:right">Action</th></tr></thead>
+            <tbody>${sliced.join('')}</tbody>
+          </table>
+          ${controls}
+        </div>`;
+      })()}
     </div>`;
 }
 
@@ -842,31 +885,41 @@ function renderGolden() {
             <span><strong>Created:</strong> ${g.created}</span>
             <span><strong>Updated:</strong> ${g.updated}</span>
           </div>
-          <div class="golden-fields">
-            ${g.fields.map((f, i) => {
-              const highlight = STATE.changedRuleFields.has(f.label) ? 'highlight' : '';
-              return `<div class="golden-field ${highlight}" id="gf-${i}">
-                <div class="golden-field-label">${f.label} ${srcBadge(f.source)}</div>
-                <div class="golden-field-value">${f.value}</div>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Cross-System ID Mapping ${info('Links each Golden Record ID to the corresponding record ID in every source ERP. Enables bidirectional traceability — look up any source ID to find its golden record, or vice versa.')}</div>
           <table class="tbl">
-            <thead><tr><th>Golden ID</th>${DATA.erpSystems.map(e => `<th>${e.name} ID</th>`).join('')}</tr></thead>
+            <thead><tr><th>Field</th><th>Value</th><th>Source System</th><th>Why This Source</th></tr></thead>
             <tbody>
-              ${g.crossIds.map(r => `<tr>
-                <td style="color:var(--primary);font-weight:600">${r.golden}</td>
-                <td style="font-family:monospace;font-size:12px">${r.sap}</td>
-                <td style="font-family:monospace;font-size:12px">${r.oracle}</td>
-                <td style="font-family:monospace;font-size:12px">${r.epicor}</td>
-                <td style="font-family:monospace;font-size:12px">${r.infor}</td>
-              </tr>`).join('')}
+              ${g.fields.map((f, i) => {
+                const highlight = STATE.changedRuleFields.has(f.label) ? ' style="background:var(--primary-bg)"' : '';
+                const rule = DATA.fieldRules.find(r => r.field === f.label);
+                const rationale = rule ? rule.rationale : 'Source system priority';
+                return `<tr${highlight}>
+                  <td style="font-weight:600">${f.label}</td>
+                  <td>${f.value}</td>
+                  <td>${srcBadge(f.source)}</td>
+                  <td style="font-size:12px;color:var(--text-secondary);font-style:italic">${rationale}</td>
+                </tr>`;
+              }).join('')}
             </tbody>
           </table>
         </div>
+        ${(() => {
+          const allRows = g.crossIds.map(r => `<tr>
+            <td style="color:var(--primary);font-weight:600">${r.golden}</td>
+            <td style="font-family:monospace;font-size:12px">${r.sap}</td>
+            <td style="font-family:monospace;font-size:12px">${r.oracle}</td>
+            <td style="font-family:monospace;font-size:12px">${r.epicor}</td>
+            <td style="font-family:monospace;font-size:12px">${r.infor}</td>
+          </tr>`);
+          const { sliced, controls } = paginate(allRows, 'crossIds');
+          return `<div class="card">
+            <div class="card-title">Cross-System ID Mapping ${info('Links each Golden Record ID to the corresponding record ID in every source ERP. Enables bidirectional traceability.')}</div>
+            <table class="tbl">
+              <thead><tr><th>Golden ID</th>${DATA.erpSystems.map(e => `<th>${e.name} ID</th>`).join('')}</tr></thead>
+              <tbody>${sliced.join('')}</tbody>
+            </table>
+            ${controls}
+          </div>`;
+        })()}
       </div>
       <div>
         <div class="card" style="margin-bottom:14px">
@@ -933,19 +986,14 @@ function renderImpact() {
   const avgConf = (DATA.clusters.reduce((a,c)=>a+c.confidence,0) / DATA.clusters.length).toFixed(1);
   // Expanded before/after — every row ties to another tab
   const fullComparison = [
-    { metric: 'Total Source Records',      before: fmt(s.totalRecords), after: fmt(s.goldenRecords), delta: ((s.totalRecords-s.goldenRecords)/s.totalRecords*100).toFixed(1)+'% reduction' },
-    { metric: 'Duplicates',                before: fmt(s.duplicates),   after: '0',                  delta: 'Fully resolved' },
-    { metric: 'Valid Records',             before: totalValid+' / '+s.totalRecords, after: s.goldenRecords+' / '+s.goldenRecords, delta: '100% clean' },
-    { metric: 'Invalid Records',           before: fmt(totalInvalid),   after: '0',                  delta: 'Removed' },
-    { metric: 'Suspect Records',           before: fmt(totalSuspect),   after: '0',                  delta: 'Resolved' },
-    { metric: 'Cross-System Linkage',      before: '0',                 after: fmt(s.goldenRecords),  delta: 'Fully linked' },
-    { metric: 'Country Standardization',   before: DATA.countryBreakdown.length+' formats', after: DATA.countryBreakdown.length+' (ISO)', delta: 'Normalized' },
-    { metric: 'Quality Issues Flagged',    before: '0',                 after: fmt(qReg.length),      delta: qReg.length+' identified' },
-    { metric: 'Records to Delete',         before: '—',                 after: fmt(delCt),            delta: 'Placeholders removed' },
-    { metric: 'Records to Archive',        before: '—',                 after: fmt(archCt),           delta: 'Non-trade entities' },
-    { metric: 'Records for Review',        before: '—',                 after: fmt(revCt),            delta: 'Sent for team review' },
-    { metric: 'Matching Clusters',         before: '0',                 after: fmt(DATA.clusters.length), delta: avgConf+'% avg confidence' },
-    { metric: 'Survivorship Rules',        before: '0',                 after: fmt(DATA.fieldRules.length), delta: 'Field-level resolution' },
+    { metric: 'Total Source Records',      before: fmt(s.totalRecords), after: fmt(s.goldenRecords), delta: ((s.totalRecords-s.goldenRecords)/s.totalRecords*100).toFixed(1)+'% reduction', tip: 'Master records extracted from all connected ERP systems before and after deduplication' },
+    { metric: 'Duplicates Resolved',       before: fmt(s.duplicates),   after: '0',                  delta: 'Fully resolved', tip: 'Records identified as the same entity across multiple systems, merged into golden records' },
+    { metric: 'Invalid Records',           before: fmt(totalInvalid),   after: '0',                  delta: 'Removed', tip: 'Records flagged as placeholders, test entries, or explicitly marked do-not-use' },
+    { metric: 'Suspect Records',           before: fmt(totalSuspect),   after: '0',                  delta: 'Resolved', tip: 'Records with partial attribute matches requiring verification — individual names, ambiguous entities' },
+    { metric: 'Cross-System Linkage',      before: '0',                 after: fmt(s.goldenRecords),  delta: 'Fully linked', tip: 'Golden records mapped to source IDs in every ERP system for bidirectional traceability' },
+    { metric: 'Quality Issues Flagged',    before: '0',                 after: fmt(qReg.length),      delta: qReg.length+' identified', tip: 'Records automatically detected as invalid or suspect, with recommended actions (delete/archive/review)' },
+    { metric: 'Matching Clusters',         before: '0',                 after: fmt(DATA.clusters.length), delta: avgConf+'% avg confidence', tip: 'Groups of records across systems identified as the same entity via fuzzy and rule-based matching' },
+    { metric: 'Country Standardization',   before: DATA.countryBreakdown.length+' formats', after: DATA.countryBreakdown.length+' (ISO)', delta: 'Normalized', tip: 'Country values standardized to ISO format — e.g. "United Arab Emirates" and "U.A.E." normalized to "UAE"' },
   ];
   return `
     <div class="page-header">
@@ -977,7 +1025,7 @@ function renderImpact() {
           <thead><tr><th>Metric</th><th>Before MDM</th><th>After MDM</th><th>Change</th></tr></thead>
           <tbody>
             ${fullComparison.map(r => `<tr>
-              <td style="font-weight:500">${r.metric}</td>
+              <td style="font-weight:500">${r.metric} ${info(r.tip)}</td>
               <td class="comparison-before">${r.before}</td>
               <td class="comparison-after">${r.after}</td>
               <td class="comparison-delta">${r.delta}</td>
@@ -1069,7 +1117,7 @@ function confirmIssue(rowId) {
   toast(`${rec.rawName} — ${rec.action.toLowerCase()}d`);
 }
 function overrideIssue(rowId) { toast('Sent to team for review'); }
-function setQualityFilter(f) { STATE.qualityFilter = f; switchTab('quality'); }
+function setQualityFilter(f) { STATE.qualityFilter = f; STATE.pages.quality = 1; switchTab('quality'); }
 function confirmAllFiltered() {
   const f = STATE.qualityFilter;
   const reg = DATA.qualityRegister.filter(r => {
